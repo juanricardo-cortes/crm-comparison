@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Cost Analysis: Zoho vs. Salesforce vs. GoHighLevel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Warm Neutrals (Slate) with brand-differentiated accents (Emerald, Sky, Purple) -->
+    <!-- Application Structure Plan: A top-down, single-page dashboard designed for progressive discovery. It starts with a high-level "At-a-Glance" summary for quick orientation. The core is an "Interactive TCO Calculator" where users input their team size and business needs to see dynamic cost visualizations, directly connecting their context to the data. This is followed by a "Feature Deep Dive" section with toggles, allowing users to compare specific aspects without being overwhelmed by a large table. This structure was chosen to guide the user from a broad overview to specific, personalized insights, making the dense report information digestible and actionable. -->
+    <!-- Visualization & Content Choices: 
+        1.  Report Info: Subscription costs for multiple tiers and platforms. Goal: Compare estimated annual costs dynamically. Viz: Interactive Bar Chart (Chart.js/Canvas). Interaction: User adjusts 'Team Size' slider and 'Business Profile' buttons; chart updates in real-time. Justification: A bar chart provides the most direct visual comparison of costs. Making it interactive based on user inputs transforms passive data consumption into an active, personalized cost estimation tool.
+        2.  Report Info: Qualitative comparisons (Ideal User, TCO factors, etc.). Goal: Allow focused, side-by-side comparison of specific features. Viz: Tabbed/Toggled Content Sections (HTML/CSS/JS). Interaction: User clicks on a feature category (e.g., 'Implementation Costs', 'Data Storage') to reveal the detailed comparison for only that category. Justification: Deconstructs the large, dense summary table from the report into manageable, user-selected chunks, preventing information overload and improving comprehension.
+        3.  Report Info: High-level platform summaries. Goal: Provide a quick, scannable overview. Viz: 3-Column Key Facts Layout (HTML/Tailwind). Interaction: Static display with icons. Justification: Offers an immediate executive summary at the top of the page, orienting the user to the core value proposition of each platform before they dive into the details.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #1e293b; /* slate-800 */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 40vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .nav-button {
+            transition: all 0.2s ease-in-out;
+        }
+        .nav-button.active {
+            background-color: #334155; /* slate-700 */
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .feature-toggle.active {
+            background-color: #475569; /* slate-600 */
+            color: #ffffff;
+            border-color: #475569;
+        }
+        .platform-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .platform-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .tooltip-custom {
+            background: rgba(0,0,0,0.8);
+            border-radius: 0.25rem;
+            color: white;
+            padding: 0.5rem;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white shadow-sm sticky top-0 z-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+                CRM Cost & Feature Analysis
+            </h1>
+            <p class="text-slate-500 mt-1">An Interactive Comparison of Zoho, Salesforce, and GoHighLevel</p>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+
+        <section id="at-a-glance" class="mb-12">
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">At a Glance: Platform Personas</h2>
+            <p class="text-slate-600 mb-6 max-w-4xl">Each platform is designed for a different type of user. This section provides a quick overview to help you identify which platform's philosophy best aligns with your business goals before diving into the detailed cost and feature comparisons.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Zoho Card -->
+                <div class="bg-white p-6 rounded-lg shadow-md platform-card border-t-4 border-emerald-500">
+                    <h3 class="text-xl font-bold text-emerald-700">Zoho</h3>
+                    <p class="font-semibold text-slate-600 mb-3">The Integrated Ecosystem</p>
+                    <p class="text-sm text-slate-700 mb-4">Ideal for <span class="font-bold">SMBs and startups</span> seeking a cost-effective, all-in-one suite of business apps. Its strength lies in providing a vast, unified ecosystem that reduces complexity and the need for multiple vendors.</p>
+                    <div class="text-sm space-y-2">
+                        <p><span class="font-semibold">💰 Starts at:</span> Free (for CRM)</p>
+                        <p><span class="font-semibold">⭐ Key Strength:</span> Breadth of integrated applications.</p>
+                    </div>
+                </div>
+                <!-- Salesforce Card -->
+                <div class="bg-white p-6 rounded-lg shadow-md platform-card border-t-4 border-sky-500">
+                    <h3 class="text-xl font-bold text-sky-700">Salesforce</h3>
+                    <p class="font-semibold text-slate-600 mb-3">The Enterprise Powerhouse</p>
+                    <p class="text-sm text-slate-700 mb-4">Best for <span class="font-bold">large enterprises</span> with complex workflows requiring deep customization, advanced AI, and robust scalability. It's the premium choice for sophisticated sales, service, and marketing operations.</p>
+                    <div class="text-sm space-y-2">
+                        <p><span class="font-semibold">💰 Starts at:</span> $25/user/month</p>
+                        <p><span class="font-semibold">⭐ Key Strength:</span> Unmatched customization and AI capabilities.</p>
+                    </div>
+                </div>
+                <!-- GoHighLevel Card -->
+                <div class="bg-white p-6 rounded-lg shadow-md platform-card border-t-4 border-purple-500">
+                    <h3 class="text-xl font-bold text-purple-700">GoHighLevel</h3>
+                    <p class="font-semibold text-slate-600 mb-3">The Agency-Focused Platform</p>
+                    <p class="text-sm text-slate-700 mb-4">Built for <span class="font-bold">marketing agencies, coaches, and consultants</span>. Its core value is consolidating marketing tools and offering a white-label SaaS mode to create new revenue streams for its users.</p>
+                    <div class="text-sm space-y-2">
+                        <p><span class="font-semibold">💰 Starts at:</span> $97/month (flat rate)</p>
+                        <p><span class="font-semibold">⭐ Key Strength:</span> White-labeling and client management.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="w-full h-px bg-slate-200 my-12"></div>
+
+        <section id="cost-calculator" class="mb-12 scroll-mt-20">
+             <h2 class="text-2xl font-bold text-slate-800 mb-2">Interactive TCO Calculator</h2>
+            <p class="text-slate-600 mb-6 max-w-4xl">Subscription fees are just the beginning. Use the controls below to estimate the Total Cost of Ownership (TCO) based on your team's size and needs. The chart visualizes estimated annual subscription costs, while the cards below highlight crucial, often overlooked, expenses like implementation and usage-based fees.</p>
+            
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="lg:col-span-1">
+                        <label for="teamSize" class="block text-sm font-medium text-slate-700">Team Size (Users)</label>
+                        <div class="flex items-center space-x-4 mt-2">
+                            <input type="range" id="teamSize" min="1" max="250" value="10" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+                            <span id="teamSizeValue" class="font-bold text-slate-800 text-lg w-12 text-center">10</span>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-2">
+                         <label class="block text-sm font-medium text-slate-700">Primary Business Profile</label>
+                         <div id="businessProfile" class="flex flex-wrap gap-2 mt-2">
+                            <button data-need="smb" class="nav-button active px-4 py-2 text-sm rounded-md bg-slate-200 text-slate-700">SMB / Startup</button>
+                            <button data-need="enterprise" class="nav-button px-4 py-2 text-sm rounded-md bg-slate-200 text-slate-700">Growing Enterprise</button>
+                            <button data-need="agency" class="nav-button px-4 py-2 text-sm rounded-md bg-slate-200 text-slate-700">Agency / All-in-One</button>
+                         </div>
+                    </div>
+                </div>
+
+                <div class="chart-container mb-8">
+                    <canvas id="costChart"></canvas>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- TCO Cards -->
+                    <div id="zoho-tco" class="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                        <h4 class="font-bold text-emerald-700">Zoho TCO Insights</h4>
+                        <div class="mt-2 text-sm text-slate-600 space-y-2">
+                            <p><strong>Implementation:</strong> <span id="zoho-impl" class="font-medium text-slate-800">$500 - $5,000</span></p>
+                            <p><strong>Watch for:</strong> Data storage and API call overages, though generally more affordable than competitors.</p>
+                        </div>
+                    </div>
+                    <div id="salesforce-tco" class="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                        <h4 class="font-bold text-sky-700">Salesforce TCO Insights</h4>
+                        <div class="mt-2 text-sm text-slate-600 space-y-2">
+                             <p><strong>Implementation:</strong> <span id="sf-impl" class="font-medium text-slate-800">$10,000 - $60,000+</span></p>
+                             <p><strong>Watch for:</strong> Expensive data storage add-ons, required Premier Support (30% of license fees), and high customization costs.</p>
+                        </div>
+                    </div>
+                    <div id="ghl-tco" class="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                        <h4 class="font-bold text-purple-700">GoHighLevel TCO Insights</h4>
+                        <div class="mt-2 text-sm text-slate-600 space-y-2">
+                           <p><strong>Implementation:</strong> <span id="ghl-impl" class="font-medium text-slate-800">$0 - $2,000</span></p>
+                            <p><strong>Watch for:</strong> Usage-based costs for SMS, calls, and emails, which can accumulate quickly with high client volume.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="w-full h-px bg-slate-200 my-12"></div>
+
+        <section id="feature-deep-dive" class="scroll-mt-20">
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">Feature & Factor Deep Dive</h2>
+            <p class="text-slate-600 mb-6 max-w-4xl">How do the platforms stack up on specific factors beyond the sticker price? Select a category below to see a direct, side-by-side comparison of their approaches to pricing models, customization, data handling, and support.</p>
+            
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <div class="flex flex-wrap gap-3 mb-6 border-b border-slate-200 pb-4">
+                    <button class="feature-toggle active px-3 py-2 text-sm font-medium border border-slate-300 rounded-full" data-feature="pricing-model">Core Pricing Model</button>
+                    <button class="feature-toggle px-3 py-2 text-sm font-medium border border-slate-300 rounded-full" data-feature="customization">Customization</button>
+                    <button class="feature-toggle px-3 py-2 text-sm font-medium border border-slate-300 rounded-full" data-feature="data-storage">Data Storage</button>
+                    <button class="feature-toggle px-3 py-2 text-sm font-medium border border-slate-300 rounded-full" data-feature="support">Support Costs</button>
+                </div>
+
+                <div id="feature-content" class="text-sm">
+                    <!-- Content will be injected by JS -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-800 text-slate-300 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-sm">
+            <p>&copy; 2025 Interactive Analysis. All data derived from the provided strategic cost analysis report.</p>
+            <p>This tool is for illustrative purposes and does not constitute a formal quote.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const platformData = {
+                zoho: {
+                    name: 'Zoho',
+                    color: 'rgba(16, 185, 129, 0.7)',
+                    borderColor: 'rgb(5, 150, 105)',
+                    plans: {
+                        smb: { name: 'CRM Professional', cost: 23, type: 'user' },
+                        enterprise: { name: 'CRM Enterprise', cost: 40, type: 'user' },
+                        agency: { name: 'One (All Employee)', cost: 37, type: 'user' }
+                    },
+                    implementation: {
+                        smb: '$500 - $5,000',
+                        enterprise: '$2,000 - $10,000+',
+                        agency: '$2,000 - $10,000+'
+                    }
+                },
+                salesforce: {
+                    name: 'Salesforce',
+                    color: 'rgba(59, 130, 246, 0.7)',
+                    borderColor: 'rgb(37, 99, 235)',
+                    plans: {
+                        smb: { name: 'Pro Suite', cost: 100, type: 'user' },
+                        enterprise: { name: 'Enterprise', cost: 165, type: 'user' },
+                        agency: { name: 'Unlimited', cost: 330, type: 'user' }
+                    },
+                    implementation: {
+                        smb: '$10,000 - $30,000',
+                        enterprise: '$30,000 - $100,000+',
+                        agency: '$60,000 - $150,000+'
+                    }
+                },
+                gohighlevel: {
+                    name: 'GoHighLevel',
+                    color: 'rgba(168, 85, 247, 0.7)',
+                    borderColor: 'rgb(147, 51, 234)',
+                    plans: {
+                        smb: { name: 'Starter', cost: 97, type: 'flat' },
+                        enterprise: { name: 'Unlimited', cost: 297, type: 'flat' },
+                        agency: { name: 'Pro SaaS', cost: 497, type: 'flat' }
+                    },
+                    implementation: {
+                        smb: '$0 - $1,000',
+                        enterprise: '$0 - $2,000',
+                        agency: '$0 - $2,000+'
+                    }
+                }
+            };
+
+            const featureDetails = {
+                'pricing-model': {
+                    title: 'Core Pricing Model Comparison',
+                    zoho: 'Per-user monthly fee for CRM. Zoho One offers a unique "All Employee" pricing model that can be very cost-effective for full organizational adoption.',
+                    salesforce: 'Strictly per-user, per-month, with costs escalating significantly across tiered editions. Numerous required add-ons can further increase the price.',
+                    gohighlevel: 'A flat monthly rate for the core platform, which includes "unlimited" users. This is highly attractive for agencies but requires careful monitoring of usage-based add-on costs.'
+                },
+                'customization': {
+                    title: 'Customization Approach',
+                    zoho: 'Offers extensive customization within its ecosystem, including custom fields, modules, and workflows, generally achievable with moderate investment.',
+                    salesforce: 'Provides unparalleled, deep customization capabilities, but this often requires significant investment in specialized developer and consultant services.',
+                    gohighlevel: 'Focuses on white-labeling and rebranding the entire platform for agencies to resell. Core workflow customization is available but less extensive than Salesforce.'
+                },
+                'data-storage': {
+                    title: 'Data Storage Costs',
+                    zoho: 'Provides a generous base storage allocation. Additional storage is available for purchase at reasonable, clearly stated rates.',
+                    salesforce: 'Additional data storage is a significant hidden cost. Exceeding the base limit can become extremely expensive (e.g., $125/month for 500MB), acting as a "silent budget drainer".',
+                    gohighlevel: 'Advertises "unlimited contacts," but this does not cover file storage in the same way. The model is built around communication data rather than large-scale record storage.'
+                },
+                'support': {
+                    title: 'Support Costs Breakdown',
+                    zoho: 'A standard plan is included. Premium and Enterprise support are available for 20-25% of the subscription fee, offering faster, guaranteed response times.',
+                    salesforce: 'A basic plan is included. The recommended Premier Success Plan, which provides 24/7 support, costs an additional 30% of net license fees.',
+                    gohighlevel: 'Standard 24/7 support is included with all plans. A Premium Support upgrade with a dedicated account manager is also available for an additional fee.'
+                }
+            };
+
+            let appState = {
+                teamSize: 10,
+                businessNeed: 'smb'
+            };
+
+            const teamSizeSlider = document.getElementById('teamSize');
+            const teamSizeValue = document.getElementById('teamSizeValue');
+            const profileButtons = document.querySelectorAll('#businessProfile button');
+            const featureToggleButtons = document.querySelectorAll('.feature-toggle');
+            const featureContentContainer = document.getElementById('feature-content');
+
+            const ctx = document.getElementById('costChart').getContext('2d');
+            let costChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Estimated Annual Subscription Cost',
+                        data: [],
+                        backgroundColor: [],
+                        borderColor: [],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + new Intl.NumberFormat('en-US').format(value);
+                                }
+                            }
+                        },
+                         x: {
+                            ticks: {
+                                font: {
+                                    size: 14,
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: false,
+                            external: function(context) {
+                                let tooltipEl = document.getElementById('chartjs-tooltip');
+                                if (!tooltipEl) {
+                                    tooltipEl = document.createElement('div');
+                                    tooltipEl.id = 'chartjs-tooltip';
+                                    tooltipEl.className = 'tooltip-custom';
+                                    document.body.appendChild(tooltipEl);
+                                }
+                                const tooltipModel = context.tooltip;
+                                if (tooltipModel.opacity === 0) {
+                                    tooltipEl.style.opacity = 0;
+                                    return;
+                                }
+                                function getBody(bodyItem) {
+                                    return bodyItem.lines;
+                                }
+                                if (tooltipModel.body) {
+                                    const titleLines = tooltipModel.title || [];
+                                    const bodyLines = tooltipModel.body.map(getBody);
+                                    let innerHtml = '<div>';
+                                    titleLines.forEach(function(title) {
+                                        innerHtml += '<div class="font-bold mb-1">' + title + '</div>';
+                                    });
+                                    bodyLines.forEach(function(body, i) {
+                                        const cost = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(body);
+                                        innerHtml += `<div>Annual Subscription: ${cost}</div>`;
+                                    });
+                                    innerHtml += '</div>';
+                                    tooltipEl.innerHTML = innerHtml;
+                                }
+                                const position = context.chart.canvas.getBoundingClientRect();
+                                tooltipEl.style.opacity = 1;
+                                tooltipEl.style.position = 'absolute';
+                                tooltipEl.style.left = position.left + window.pageXOffset + tooltipModel.caretX + 'px';
+                                tooltipEl.style.top = position.top + window.pageYOffset + tooltipModel.caretY + 'px';
+                                tooltipEl.style.transform = 'translate(-50%, -110%)';
+                            }
+                        }
+                    }
+                }
+            });
+            
+            function calculateCosts() {
+                const costs = {};
+                for (const platform in platformData) {
+                    const data = platformData[platform];
+                    const plan = data.plans[appState.businessNeed];
+                    let annualCost = 0;
+                    if (plan.type === 'user') {
+                        annualCost = plan.cost * appState.teamSize * 12;
+                    } else { // flat
+                        annualCost = plan.cost * 12;
+                    }
+                    costs[platform] = annualCost;
+                }
+                return costs;
+            }
+
+            function updateUI() {
+                const costs = calculateCosts();
+                const chartLabels = [];
+                const chartData = [];
+                const chartColors = [];
+                const chartBorderColors = [];
+                
+                for (const platform in costs) {
+                    chartLabels.push(platformData[platform].name);
+                    chartData.push(costs[platform]);
+                    chartColors.push(platformData[platform].color);
+                    chartBorderColors.push(platformData[platform].borderColor);
+                }
+
+                costChart.data.labels = chartLabels;
+                costChart.data.datasets[0].data = chartData;
+                costChart.data.datasets[0].backgroundColor = chartColors;
+                costChart.data.datasets[0].borderColor = chartBorderColors;
+                costChart.update();
+
+                document.getElementById('zoho-impl').textContent = platformData.zoho.implementation[appState.businessNeed];
+                document.getElementById('sf-impl').textContent = platformData.salesforce.implementation[appState.businessNeed];
+                document.getElementById('ghl-impl').textContent = platformData.gohighlevel.implementation[appState.businessNeed];
+            }
+
+            function updateFeatureContent(featureKey) {
+                 const content = featureDetails[featureKey];
+                 if (!content) return;
+
+                 const html = `
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <h4 class="font-bold text-emerald-700 mb-2">Zoho</h4>
+                            <p class="text-slate-600">${content.zoho}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-sky-700 mb-2">Salesforce</h4>
+                            <p class="text-slate-600">${content.salesforce}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-purple-700 mb-2">GoHighLevel</h4>
+                            <p class="text-slate-600">${content.gohighlevel}</p>
+                        </div>
+                    </div>
+                 `;
+                 featureContentContainer.innerHTML = html;
+            }
+
+            teamSizeSlider.addEventListener('input', (e) => {
+                appState.teamSize = parseInt(e.target.value, 10);
+                teamSizeValue.textContent = appState.teamSize;
+                updateUI();
+            });
+
+            profileButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    profileButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    appState.businessNeed = button.dataset.need;
+                    updateUI();
+                });
+            });
+
+            featureToggleButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    featureToggleButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    const featureKey = button.dataset.feature;
+                    updateFeatureContent(featureKey);
+                });
+            });
+
+            updateUI();
+            updateFeatureContent('pricing-model');
+        });
+    </script>
+</body>
+</html>
