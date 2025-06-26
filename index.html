@@ -14,7 +14,7 @@
     <!-- Application Structure Plan: A top-down, single-page dashboard designed for progressive discovery. It starts with a high-level "At-a-Glance" summary for quick orientation. The core is an "Interactive TCO Calculator" where users input their team size and business needs to see dynamic cost visualizations, directly connecting their context to the data. This is followed by a "Feature Deep Dive" section with toggles, allowing users to compare specific aspects without being overwhelmed by a large table. This structure was chosen to guide the user from a broad overview to specific, personalized insights, making the dense report information digestible and actionable. -->
     <!-- Visualization & Content Choices: 
         1.  Report Info: Subscription costs for multiple tiers and platforms. Goal: Compare estimated annual costs dynamically. Viz: Interactive Bar Chart (Chart.js/Canvas). Interaction: User adjusts 'Team Size' slider and 'Business Profile' buttons; chart updates in real-time. Justification: A bar chart provides the most direct visual comparison of costs. Making it interactive based on user inputs transforms passive data consumption into an active, personalized cost estimation tool.
-        2.  Report Info: Qualitative comparisons (Ideal User, TCO factors, etc.). Goal: Allow focused, side-by-side comparison of specific features. Viz: Tabbed/Toggled Content Sections (HTML/CSS/JS). Interaction: User clicks on a feature category (e.g., 'Implementation Costs', 'Data Storage') to reveal the detailed comparison for only that category. Justification: Deconstructs the large, dense summary table from the report into manageable, user-selected chunks, preventing information overload and improving comprehension.
+        2.  Report Info: Qualitative comparisons (Ideal User, TCO factors, etc.). Goal: Allow focused, side-by-side comparison of specific features. Viz: Tabbed/Toggled Content Sections (HTML/CSS/JS). Interaction: User clicks on a feature category (e.g., 'Implementation Costs', 'Data Storage', 'API Limits/Costs', 'Implementation/Setup Costs') to reveal the detailed comparison for only that category. Justification: Deconstructs the large, dense summary table from the report into manageable, user-selected chunks, preventing information overload and improving comprehension.
         3.  Report Info: High-level platform summaries. Goal: Provide a quick, scannable overview. Viz: 3-Column Key Facts Layout (HTML/Tailwind). Interaction: Static display with icons. Justification: Offers an immediate executive summary at the top of the page, orienting the user to the core value proposition of each platform before they dive into the details.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
@@ -183,9 +183,12 @@
             <div class="bg-white p-6 rounded-lg shadow-lg">
                 <div class="flex flex-wrap gap-3 mb-6 border-b border-slate-200 pb-4">
                     <button class="feature-toggle active px-3 py-2 text-sm font-medium border border-slate-300 rounded-full" data-feature="pricing-model">Core Pricing Model</button>
+                    <button class="feature-toggle px-3 py-2 text-sm font-medium border border-slate-300 rounded-full" data-feature="implementation">Implementation/Setup Costs</button>
                     <button class="feature-toggle px-3 py-2 text-sm font-medium border border-slate-300 rounded-full" data-feature="customization">Customization</button>
                     <button class="feature-toggle px-3 py-2 text-sm font-medium border border-slate-300 rounded-full" data-feature="data-storage">Data Storage</button>
+                    <button class="feature-toggle px-3 py-2 text-sm font-medium border border-slate-300 rounded-full" data-feature="api-limits">API Limits/Costs</button>
                     <button class="feature-toggle px-3 py-2 text-sm font-medium border border-slate-300 rounded-full" data-feature="support">Support Costs</button>
+                    <button class="feature-toggle px-3 py-2 text-sm font-medium border border-slate-300 rounded-full" data-feature="hidden-costs">Potential Hidden/Usage-Based Costs</button>
                 </div>
 
                 <div id="feature-content" class="text-sm">
@@ -257,27 +260,45 @@
             const featureDetails = {
                 'pricing-model': {
                     title: 'Core Pricing Model Comparison',
-                    zoho: 'Per-user monthly fee for CRM. Zoho One offers a unique "All Employee" pricing model that can be very cost-effective for full organizational adoption.',
-                    salesforce: 'Strictly per-user, per-month, with costs escalating significantly across tiered editions. Numerous required add-ons can further increase the price.',
-                    gohighlevel: 'A flat monthly rate for the core platform, which includes "unlimited" users. This is highly attractive for agencies but requires careful monitoring of usage-based add-on costs.'
+                    zoho: `<strong>Per-user monthly fee for CRM.</strong> Zoho One offers a unique <strong>"All Employee" pricing</strong> model at $37/user/month (annual) that can be very cost-effective for full organizational adoption. Individual CRM plans range from $14-$52/user/month (annual).`,
+                    salesforce: `Strictly <strong>per-user, per-month, with costs escalating significantly</strong> across tiered editions ($25-$550/user/month for Sales/Service Cloud). Numerous required add-ons can further increase the price. Marketing Cloud starts at $1,500/org/month.`,
+                    gohighlevel: `A <strong>flat monthly rate for the core platform</strong> ($97-$497/month annual), which includes "unlimited" users for the core. This is highly attractive for agencies but requires careful monitoring of usage-based add-on costs for communications and AI.`
+                },
+                'implementation': {
+                    title: 'Implementation/Setup Costs',
+                    zoho: `<strong>Basic setup:</strong> $500-$2,000. <strong>Standard (data migration, basic customization):</strong> $2,000-$5,000. <strong>Advanced (complex customization, integration):</strong> $5,000-$10,000+. "Jumpstart" services available at $200/hour (min 10 hours).`,
+                    salesforce: `<strong>Highly variable:</strong> $10,000-$150,000+ depending on complexity and business size. Small-scale: $10,000-$30,000. Medium-scale: $30,000-$60,000. Large-scale: $60,000-$100,000+. Initial "discovery" phase alone can be $5,000-$20,000.`,
+                    gohighlevel: `<strong>No explicit setup fee</strong> for core plans. Agencies may charge for client onboarding: $50/sub-account for A2P/funnel setup, or $1,000-$2,000 for website setup. Promotional $0 setup fees may apply.`
                 },
                 'customization': {
                     title: 'Customization Approach',
-                    zoho: 'Offers extensive customization within its ecosystem, including custom fields, modules, and workflows, generally achievable with moderate investment.',
-                    salesforce: 'Provides unparalleled, deep customization capabilities, but this often requires significant investment in specialized developer and consultant services.',
-                    gohighlevel: 'Focuses on white-labeling and rebranding the entire platform for agencies to resell. Core workflow customization is available but less extensive than Salesforce.'
+                    zoho: `Offers <strong>extensive customization</strong> within its ecosystem, including up to 500 custom fields per module and 500 total custom modules. Basic customization ($500-$2,000), advanced ($2,000-$5,000+).`,
+                    salesforce: `Provides <strong>unparalleled, deep customization capabilities</strong>. Basic ($10,000-$20,000), complex (>$50,000). Often requires significant investment in specialized developer and consultant services. Utilizes Salesforce Flow, OmniStudio.`,
+                    gohighlevel: `Focuses on <strong>white-labeling and rebranding</strong> the entire platform for agencies to resell. Core workflow customization is available (e.g., funnels, forms, workflows) but generally less extensive than Salesforce.`
                 },
                 'data-storage': {
                     title: 'Data Storage Costs',
-                    zoho: 'Provides a generous base storage allocation. Additional storage is available for purchase at reasonable, clearly stated rates.',
-                    salesforce: 'Additional data storage is a significant hidden cost. Exceeding the base limit can become extremely expensive (e.g., $125/month for 500MB), acting as a "silent budget drainer".',
-                    gohighlevel: 'Advertises "unlimited contacts," but this does not cover file storage in the same way. The model is built around communication data rather than large-scale record storage.'
+                    zoho: `<strong>Base file storage:</strong> 5GB + 1GB/user. Additional file storage: $5.75/month for 5GB. <strong>Base data storage:</strong> 10GB (1-200 users) or 15GB (>200 users) + 50MB/employee. Additional data storage: $4/100MB/month (1-200 users), $2/100MB/month (>200 users).`,
+                    salesforce: `<strong>Default file storage:</strong> 10GB/org (Professional+) or 1GB (Essentials). Additional file storage: $5/GB/month. <strong>Default data storage:</strong> 10GB + 20MB/user. Additional data storage is expensive: ~$125/month for 500MB (a "silent budget drainer").`,
+                    gohighlevel: `Advertises <strong>"unlimited contacts and users"</strong> for the core platform. However, this does not cover file storage or large-scale record storage in the same way. Usage-based costs apply for communication data.`
+                },
+                'api-limits': {
+                    title: 'API Limits/Costs',
+                    zoho: `<strong>CRM webhooks:</strong> 1 per action, 1M calls/day or 1000 calls/user/day (whichever is lower). <strong>Zoho One:</strong> Default 1000 credits/org/month + 50 credits/employee (capped at 1000 credits). <strong>Analytics:</strong> Additional API units can be purchased (e.g., $18/month for 10,000 units/day).`,
+                    salesforce: `<strong>Daily limits vary by edition:</strong> (e.g., Developer 15,000, Enterprise/Unlimited 100,000+ calls + per-license allocations). <strong>Bulk API:</strong> 15,000 batch submissions/24h. <strong>Streaming API:</strong> Up to 1M events/day. Exceeding limits may require purchasing additional user licenses or upgrading editions.`,
+                    gohighlevel: `<strong>API access is included</strong> in the Unlimited plan. <strong>White-label Zap integration:</strong> $50/month. The platform focuses more on built-in integrations and workflow automation rather than direct API usage.`
                 },
                 'support': {
                     title: 'Support Costs Breakdown',
-                    zoho: 'A standard plan is included. Premium and Enterprise support are available for 20-25% of the subscription fee, offering faster, guaranteed response times.',
-                    salesforce: 'A basic plan is included. The recommended Premier Success Plan, which provides 24/7 support, costs an additional 30% of net license fees.',
-                    gohighlevel: 'Standard 24/7 support is included with all plans. A Premium Support upgrade with a dedicated account manager is also available for an additional fee.'
+                    zoho: `Standard plan included. <strong>Premium support:</strong> 20% of subscription (3-hour response). <strong>Enterprise support:</strong> 25% of subscription (1-hour response). Designed for a minimal learning curve.`,
+                    salesforce: `<strong>Standard Success Plan:</strong> Included (self-guided resources). <strong>Premier Success Plan:</strong> Additional 30% of net license fees (expert guidance, expedited 24/7 support for critical issues). <strong>Signature Success Plan:</strong> Requires contacting sales.`,
+                    gohighlevel: `Standard <strong>24/7 support via chat, Zoom, tickets, phone</strong>, and self-service portal is included. A <strong>Premium Support upgrade</strong> is available (faster response, dedicated TAM, private Slack channel).`
+                },
+                'hidden-costs': {
+                    title: 'Potential Hidden/Usage-Based Costs',
+                    zoho: `<strong>Primary:</strong> Additional data storage and API call overages if exceeding base allocations. Generally more affordable and transparent compared to competitors.`,
+                    salesforce: `<strong>Significant:</strong> Wasted licensing due to underutilization, low user adoption costs, inefficiencies from poor workflows, poor data quality impacts, project delays/failures. Most notably, expensive additional data storage and required Premier Support.`,
+                    gohighlevel: `<strong>Crucial:</strong> Usage-based costs for SMS, calls, and emails can accumulate quickly ($0.0079/SMS, $0.0140/min calls). External email sending services (Mailgun ~$50-100/month) or LC Email ($0.675/1000 emails). Premium Triggers/Actions ($0.01/execution). AI Employee ($97/month flat) plus token-based GPT actions.`
                 }
             };
 
@@ -419,6 +440,7 @@
                  if (!content) return;
 
                  const html = `
+                    <h3 class="text-xl font-bold text-slate-800 mb-4">${content.title}</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <h4 class="font-bold text-emerald-700 mb-2">Zoho</h4>
